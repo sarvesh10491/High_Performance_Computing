@@ -1,0 +1,4 @@
+&basinparams
+henonparams = 2.12, -0.3
+xextent = -3, 3, -3, 3, 4096, 4096
+/
