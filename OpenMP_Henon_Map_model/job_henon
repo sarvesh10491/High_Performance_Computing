@@ -1,0 +1,12 @@
+#!/bin/bash
+#SBATCH -n 1 
+#SBATCH -J hennon
+#SBATCH --ntasks-per-node=4
+#SBATCH -o hennon.out
+#SBATCH -e hennon.error
+module load intel/2018x
+export OMP_NUM_THREADS=4
+echo $OMP_NUM_THREADS
+make
+time ./main
+
