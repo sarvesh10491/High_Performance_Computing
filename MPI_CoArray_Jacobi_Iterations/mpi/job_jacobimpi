@@ -1,0 +1,9 @@
+#!/bin/bash
+#SBATCH -n 16  
+#SBATCH -t 0-00:05:00
+#SBATCH -J jacobimpi 
+#SBATCH -o jacobimpi%j.out
+#SBATCH -e jacobimpi%j.error
+make
+time mpirun -n 16 ./jacobimpi
+
