@@ -83,7 +83,7 @@ int main(){
     mult_matrix();
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &multEnd);
     timespec_diff(&multStart, &multEnd, &multDiff);
-    // print_matrix();
+    print_matrix();
     printf("Matrix multiplication time : ");
     printf("%lld.%.9ld sec\n\n", (long long)multDiff.tv_sec, multDiff.tv_nsec);
 
