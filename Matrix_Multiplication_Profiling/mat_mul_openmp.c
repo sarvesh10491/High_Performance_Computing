@@ -3,7 +3,8 @@
 #include <time.h>
 #include <omp.h>
 
-#define MAT_SIZE 1024
+#define MAT_SIZE    1024
+#define NUM_THREADS 8
 
 static double matA[MAT_SIZE][MAT_SIZE];
 static double matB[MAT_SIZE][MAT_SIZE];
@@ -22,9 +23,12 @@ void init_matrix(){
 
 void mult_matrix(){
     int i,j,k;
-    #pragma omp parallel shared(matA,matB,matC) private(i,j,k) num_threads(8)
+    omp_set_num_threads(NUM_THREADS);
+    int chunk = MAT_SIZE/NUM_THREADS;
+
+    #pragma omp parallel shared(matA,matB,matC,chunk) private(i,j,k) num_threads(NUM_THREADS)
     {
-        #pragma omp for schedule (static)
+        #pragma omp for schedule (static,chunk)
         for(i=0; i<MAT_SIZE; i++)
             for(j=0; j<MAT_SIZE; j++)
                 for(k=0; k<MAT_SIZE; k++)
