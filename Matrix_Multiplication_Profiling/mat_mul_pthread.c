@@ -6,7 +6,7 @@
 #include <unistd.h>
 
 #define MAT_SIZE    1024
-#define NUM_THREADS 2
+#define NUM_THREADS 8
 
 static double matA[MAT_SIZE][MAT_SIZE];
 static double matB[MAT_SIZE][MAT_SIZE];
@@ -16,13 +16,14 @@ struct t_data
 {
     int t_id;
     int t_num;
+    int row_start;
+    int row_end;
 };
 
 pthread_cond_t start;           // Condition variable for start sync
 pthread_mutex_t start_mut;      // Mutex used in conjunction with condition variables
 
-int chunk, row_start, row_end;
-chunk = MAT_SIZE / NUM_THREADS;
+int chunk = MAT_SIZE / NUM_THREADS;
 
 
 void init_matrix(){
@@ -35,32 +36,27 @@ void init_matrix(){
 }
 
 
-void *mult_matrix(void *argptr)
-{
+void *mult_matrix(void *argptr){
     // Thread function computations
     struct t_data *tptr;
     tptr = (struct t_data *)argptr;
 
-    row_start = (tptr->t_num) * chunk;
-    row_end = (tptr->t_num + 1) * chunk;
-
-    printf("Periodic thread invoked : %d\n", tptr->t_num);
-    printf("row_start : %d || row_end : %d\n", row_start, row_end);
+    printf("Compute thread invoked : %d\n", tptr->t_num);
 
     // Each thread wait here till conditional variable broadcasts
     pthread_mutex_lock(&start_mut);
     int cret = pthread_cond_wait(&start, &start_mut);       // All threads waiting on start condition variable to start simultaneously
     if(cret!=0)
-        printf("Periodic condition variable error %d\n",cret);
+        printf("Condition variable error %d\n",cret);
     pthread_mutex_unlock(&start_mut);
     
     printf("Calculating chunk : %d\n", tptr->t_num);
-    for(int i=row_start; i<row_end; i++)
+    for(int i=tptr->row_start; i<tptr->row_end; i++)
         for(int j=0; j<MAT_SIZE; j++)
             for(int k=0; k<MAT_SIZE; k++)
                 matC[i][j] += matA[i][k] * matB[k][j];
     
-    printf("Periodic thread exiting : %d\n", tptr->t_num);   
+    printf("Compute thread exiting : %d\n", tptr->t_num);   
 
     pthread_exit(NULL);
 }
@@ -137,6 +133,8 @@ int main(){
         dptr[i] = (struct t_data *)malloc(sizeof(struct t_data));
         dptr[i]->t_id = tid[i];
         dptr[i]->t_num = i;
+        dptr[i]->row_start = i * chunk;
+        dptr[i]->row_end = (i+1) * chunk;
 
         tret = pthread_create(&tid[i], &fifo_attr, mult_matrix, (void *)dptr[i]);
         if(tret)
@@ -157,7 +155,7 @@ int main(){
     }
     clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &multEnd);
     timespec_diff(&multStart, &multEnd, &multDiff);
-    print_matrix();
+    // print_matrix();
     printf("Matrix multiplication time : ");
     printf("%lld.%.9ld sec\n\n", (long long)multDiff.tv_sec, multDiff.tv_nsec);
 
