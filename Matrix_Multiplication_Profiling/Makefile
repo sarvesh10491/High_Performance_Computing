@@ -1,12 +1,19 @@
 ifeq ($(mode),0)
 		TARGET = mat_mul_seq
-else
+endif
+
+ifeq ($(mode),1)
+LIBS = -pthread -lm -lrt
 		TARGET = mat_mul_pthread
+endif
+
+ifeq ($(mode),2)
+LIBS = -fopenmp -lm -lrt
+		TARGET = mat_mul_openmp
 endif
 
 # the compiler: gcc for C program
 CC = gcc
-LIBS = -pthread -lm -lrt
 CFLAGS  = -Wall
 # DEPS = queue_ops.h
 
